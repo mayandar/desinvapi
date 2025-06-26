@@ -30,7 +30,7 @@ public class DesInventar implements IDesInventar {
      * @param country - Country codification ISO3
      */
     public DesInventar(String country) {
-		final String server = "desinventar_db"; //desinventar_db
+		final String server = "localhost";
 		this.country = country;
         // Special manage to Pacific Island Region (22 active territories)
         if (country.equals("asm") || country.equals("cok") || country.equals("etm") || country.equals("fsm") || country.equals("fji") || 
@@ -42,7 +42,7 @@ public class DesInventar implements IDesInventar {
 		    this.url = "jdbc:postgresql://"+ server +"/pacific";
 		    this.driver = "org.postgresql.Driver";
 		    this.user = "postgres";
-		    this.pass = "c0l0mbia98"; // c0l0mbia98- PAC is a special database. 
+		    this.pass = "postgres";
         }
         // Other regions/countries:
 		else {
@@ -50,9 +50,9 @@ public class DesInventar implements IDesInventar {
 	    	this.region = country;
 	    	DriverManagerDataSource ds = new DriverManagerDataSource();
 	        ds.setDriverClassName("org.postgresql.Driver");
-	        ds.setUrl("jdbc:postgresql://localhost/desinventar_main"); //desinventar_db
+	        ds.setUrl("jdbc:postgresql://localhost/desinventar_main");
 	        ds.setUsername("postgres");
-	        ds.setPassword("postgres"); //c0l0mbia98
+	        ds.setPassword("postgres");
 			JdbcTemplate main = new JdbcTemplate(ds);
 			String sql = "select sdatabasename, sdriver, susername, spassword from country where scountryid='"+ country +"'";
 			List<Map<String, Object>> rows = main.queryForList(sql);
@@ -152,20 +152,6 @@ public class DesInventar implements IDesInventar {
 				"SELECT '2' as lev, lev2_cod as code, lev2_lev1 as parent, "+
 				"lev2_name_en as label, lev2_name as name, filename, lev_code, lev_name  FROM lev2, lev1, level_maps "+
 				"WHERE (lev2_lev1=lev1_cod or lev2_lev1 is null) AND map_level=2 ORDER BY lev, code";
-/*					
-					"SELECT '0' as lev, n.descripcion_en as levlabel, n.descripcion as levname, lev0_cod as code, "
-				+ "'' as parent, lev0_name_en as label, lev0_name as name, filename, lev_code, lev_name "
-				+ "FROM niveles n, lev0, level_maps WHERE n.nivel=0 AND n.nivel=map_level "
-				+ "UNION "
-				+ "SELECT '1' as lev, n.descripcion_en as levlabel, n.descripcion as levname, lev1_cod as code, "
-				+ "lev1_lev0 as parent, lev1_name_en as label, lev1_name as name, filename, lev_code, lev_name "
-				+ "FROM niveles n, lev1, lev0, level_maps WHERE n.nivel=1 "
-				+ "AND (lev1_lev0=lev0_cod or lev1_lev0 is null) AND n.nivel=map_level "
-				+ "UNION "
-				+ "SELECT '2' as lev, n.descripcion_en as levlabel, n.descripcion as levname, lev2_cod as code, "
-				+ "lev2_lev1 as parent, lev2_name_en as label, lev2_name as name, filename, lev_code, lev_name  "
-				+ "FROM niveles n, lev2, lev1, level_maps WHERE n.nivel=2 "
-				+ "AND (lev2_lev1=lev1_cod or lev2_lev1 is null) AND n.nivel=map_level ORDER BY lev, code";*/
 			JdbcTemplate select = new JdbcTemplate(this.dataSource);
 			System.out.println("--"+ sql +"--");
 			try {
@@ -256,98 +242,6 @@ public class DesInventar implements IDesInventar {
 		return null;
 	}
 
-	/**
-    * find the List of Datacards for the Region 
-    * @param	IsoCode(3) for the country
-    * @param	Begin date of the datacards
-    * @param	End date of the datacards
-    * @return   Datacards Object
-    */
-/*	@SuppressWarnings("deprecation")
-	@Override
-	public Datacards findDatacards(String country, String dateini, String dateend) throws SQLException {
-		if (! this.driver.isEmpty()) {
-			String sql = "SELECT f.uu_id as uuid, f.level0 as geo_cod0, f.level1 as geo_cod1, f.level2 as geo_cod2, f.name0 as geo_nam0, "
-					+ "f.name1 as geo_nam1, f.name2 as geo_nam2, f.lugar as geo_place, f.latitude as geo_lat, f.longitude as geo_lon, "
-					+ "v.nombre_en as hzd_label, f.evento as hzd_event, f.duracion as hzd_eventduration, f.causa as hzd_cause, f.descausa as hzd_causedesc, "
-					+ "f.magnitud2 as hzd_eventmagnitude, f.serial as rec_serial, f.fuentes as rec_sources, f.fechapor as rec_user, "
-					+ "f.fechafec as rec_date, f.fechano as eff_year, f.fechames as eff_month, f.fechadia as eff_day, "
-					+ "f.muertos as eff_deaths, f.hay_muertos as eff_withdeaths, "
-					+ "f.heridos as eff_injured, f.hay_heridos as eff_withinjured, "
-					+ "f.desaparece as eff_missing, f.hay_deasparece as eff_withmissing, "
-					+ "f.afectados as eff_indirectaffected, f.hay_afectados as eff_withindirecaffected, "
-					+ "f.damnificados as eff_directaffected, f.hay_damnificados as eff_withdirectaffected, "
-					+ "f.vivdest as eff_dstdwelling, f.hay_vivdest as eff_withdstdwelling, "
-					+ "f.vivafec as eff_dmgdwelling, f.hay_vivafec as eff_withdmgdwelling, "
-					+ "f.valorloc as eff_losseslcu, f.valorus as eff_lossesusd, "
-					+ "f.otros as eff_others, f.hay_otros as eff_withothers, "
-					+ "f.evacuados as eff_evacuated, f.hay_evacuados as eff_withevacuated, "
-					+ "f.reubicados as eff_relocated, f.hay_reubicados as eff_withrelocated, "
-					+ "f.socorro as eff_reliefcenters, f.socorro as eff_withrelief_sec, "
-					+ "f.nhospitales as eff_healthcenters, f.salud as eff_withhealth_sec, "
-					+ "f.nescuelas as eff_educationcenters, f.educacion as eff_witheducation_sec, "
-					+ "f.nhectareas as eff_hectares, f.cabezas as eff_livestock, f.agropecuario as eff_withagricultural_sec, "
-					+ "f.industrias as eff_withindustrial_sec, f.acueducto as eff_withwatersupply_sec, "
-					+ "f.alcantarillado as eff_withsewerage_sec, f.energia as eff_withpowersupply_sec, "
-					+ "f.comunicaciones as eff_withcomm_sec, f.di_comments as rec_comments, "
-					+ "f.kmvias as eff_roadskm, f.transporte as eff_transport_sec, e.* FROM fichas f, extension e, eventos v "
-					+ "WHERE f.clave=e.clave_ext AND v.nombre = f.evento AND approved=0";
-			JdbcTemplate select = new JdbcTemplate(this.dataSource);
-			// DATES processing: format YYYY-MM-DD
-			String[] dt1 = dateini.split("-");
-			String[] dt2 = dateend.split("-");
-			// checking date range
-			if (dt1.length == 3 && dt2.length == 3)
-				sql += " AND (f.fechano*10000)+(f.fechames*100)+f.fechadia BETWEEN "+ dt1[0]+dt1[1]+dt1[2] +" AND "+ dt2[0]+dt2[1]+dt2[2];
-			else if (dt1.length != 3 && dt2.length == 3)
-				sql += " AND (f.fechano*10000)+(f.fechames*100)+f.fechadia <= "+ dt2[0]+dt2[1]+dt2[2];
-			else if (dt1.length == 3 && dt2.length != 3)
-				sql += " AND (f.fechano*10000)+(f.fechames*100)+f.fechadia >= "+ dt1[0]+dt1[1]+dt1[2];
-			else
-				System.out.println("ERR: Date format incorrect - Searching all database");
-			// sql += " ORDER BY f.fechano, f.fechames, f.fechadia";
-			System.out.println("--"+ sql +"--");
-			try {
-				return select.queryForObject(sql, new Object[]{}, new DatacardsRowMapper(country, dateini, dateend));
-			}
-			catch (Exception e) {
-				System.out.println ("ERR: "+ e.getMessage());
-				return null;
-			}
-		}
-		return null;
-	}
-*/	
-    /**
-    * find the List of Datacards for the Region 
-    * @param	IsoCode(3) for the country
-    * @param	Begin date of the datacards
-    * @param	End date of the datacards
-    * @return   Datacards Object
-    */
-/*	@SuppressWarnings("deprecation")
-	@Override
-	public Datacards findDatacards(String country, String[] ids) throws SQLException {
-		if (! this.driver.isEmpty()) {
-			String sql = "SELECT f.*, e.* FROM fichas f, extension e where f.clave=e.clave_ext";
-			JdbcTemplate select = new JdbcTemplate(this.dataSource);
-			if (ids.length > 0) {
-				sql += " AND uu_id IN ("+ dt1[0]+dt1[1]+dt1[2] +")";
-			}
-			else {
-				System.out.println("ERR: No Ids requested:(");
-			}
-			System.out.println("--"+ sql +"--");
-			try {
-				return select.queryForObject(sql, new Object[]{}, new DatacardsRowMapper(country, dateini, dateend));
-			}
-			catch (Exception e) {
-				System.out.println ("ERR: "+ e.getMessage());
-				return null;
-			}
-		}
-		return null;
-	}*/
 
 	/**
     * find the Indicator (Sendai) for the Region 
