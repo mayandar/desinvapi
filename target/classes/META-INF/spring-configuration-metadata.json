@@ -1,0 +1,32 @@
+{
+  "groups": [
+    {
+      "name": "db",
+      "type": "net.desinventar.disapi.ConfigProperties",
+      "sourceType": "net.desinventar.disapi.ConfigProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "db.driver",
+      "type": "java.lang.String",
+      "sourceType": "net.desinventar.disapi.ConfigProperties"
+    },
+    {
+      "name": "db.name",
+      "type": "java.lang.String",
+      "sourceType": "net.desinventar.disapi.ConfigProperties"
+    },
+    {
+      "name": "db.password",
+      "type": "java.lang.String",
+      "sourceType": "net.desinventar.disapi.ConfigProperties"
+    },
+    {
+      "name": "db.username",
+      "type": "java.lang.String",
+      "sourceType": "net.desinventar.disapi.ConfigProperties"
+    }
+  ],
+  "hints": []
+}
